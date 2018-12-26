@@ -1,0 +1,83 @@
+<script>
+import {wxa, Page} from '@wxa/core';
+
+@Page
+class Index {
+    constructor(){
+        this.data = {
+            openid:'',
+            access_token:''
+        }
+    }
+    onLoad() {
+        let appId = 'wx4c0383dda14ae1a4';
+        let secret = 'dae494824428e6fe12a4d46e4a32f810';
+        this.getOpenId();
+    }
+
+    toSendCustomerMessage(){
+        let path = 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token=' + this.data.access_token;
+        this.fetch(path , {
+            access_token:this.data.access_token,
+            touser:this.data.openid,
+            msgtype:'text',
+            text:{
+                content:'你好'
+            }
+        } , {} , 'post').then((res) => {
+            console.log(res)
+        })
+    }
+
+    getOpenId(){
+        wx.login({
+            success:(res) => {
+                this.fetch('http://localhost:3000/get/openId?code=' + res.code , {code:res.code} , {} , 'post')
+                    .then((result) => {
+                        let openid = result.data.openid;
+                        this.setData({
+                            openid:openid
+                        })
+                        this.getAccessToken();
+                    })
+            }
+        })
+    }
+
+    getAccessToken(){
+        let appid = 'wx4c0383dda14ae1a4';
+        let secret = 'dae494824428e6fe12a4d46e4a32f810';
+        let path = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='+appid+'&secret='+secret;
+        this.fetch(path , {} , {} , 'get').then((res) => {
+            this.setData({
+                access_token:res.data.access_token
+            })
+            this.toSendCustomerMessage();
+        })
+    }
+}
+
+wxa.launchPage(Index);
+</script>
+<config>
+{
+    "navigationTextTitle": "首页"
+}
+</config>
+<template>
+<view class="page">
+    <view class="slogn">
+        hello, this is wxa!
+    </view>
+</view>
+</template>
+<style lang="scss">
+.page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+</style>
